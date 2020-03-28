@@ -1,0 +1,180 @@
+Regular expression
+- symbols representing a text pattern
+- interpreted by a regular expression processor
+- grep: global regular expression print, egrep: extended grep, new version
+- BRE: basic regular expressions, for compatibility, ERE: extended regular expressions, new version
+- https://www.regexpal.com/
+
+Characters
+- case sensitive by default
+- dot matches all options that the . metacharacter matches the new line charater too
+- car matches car and carneval
+- standard mode matches the first occurence, global matches all of them
+- / might has to be escaped because they are special characters, meaning the beginning and end of a regular expression
+- tab: \t
+- line returns: \r, \n, \r\n
+
+Metacharacters
+. - any character except new line, matches only 1 character
+\ - escape character for metacharacters, literal characters should not be escaped, it gives them a meaning
+
+Character Sets
+[] - begin and of character set metacharacter
+- match only one charater from the listed ones
+- - character ranges metacharacter ([0-9], [A-Z,a-z], [a-ek-ou-y], [50-99]: same as [0-9], because it is just a list, having 5 and 9 twice)
+^ - negate (not any of the) character set metacharacter ([^aert]: anything except these), no character is not matches the negate, it always matches one character
+- metacharacter inside sets are already escaped except the followings: ]-^\
+- shorthand character sets (matches one character, can be negated too [^\s\d):
+	- \d - digit ([0-9])
+	- \w - word character ([a-zA-Z0-9_]
+	- \s - whitespaces ([ \t\r\n])
+	- \D - not digit ([^0-9])
+	- \W - not word character ([^a-zA-Z0-9_]
+	- \S - not whitespace ([^ \t\r\n])
+[\D\S] - not a digit or a space
+- POSIX Bracket Expressions can be used inside a character set [[:alpha:]],
+  works in Perl, PHP, Ruby, Unix, but does not work in Java, JS, .NET, Python: 
+	- [:alnum:] - Alphanumeric characters ([a-zA-Z0-9])
+	- [:alpha:] - Alphabetic characters ([a-zA-Z])
+	- [:ascii:] - ASCII characters ([\x00-\x7F])
+	- [:blank:] - Space and tab ([ \t])
+	- [:cntrl:] - Control characters ([\x00-\x1F\x7F])
+	- [:digit:] - Digits ([0-9])
+	- [:graph:] - Visible characters (anything except spaces and control characters) ([\x21-\x7E])
+	- [:lower:] - Lowercase letters 	[a-z] 	\p{Ll} 	\l 	\p{Lower}
+	- [:print:] - Visible characters and spaces (anything except control characters) ([\x20-\x7E])
+	- [:punct:] - Punctuation (and symbols) ([!"\#$%&'()*+,\-./:;<=>?@\[\\\]^_‘{|}~])
+	- [:space:] - All whitespace characters, including line breaks ([ \t\r\n\v\f])
+	- [:upper:] - Uppercase letters ([A-Z])
+	- [:word:] - Word characters (letters, numbers and underscores) ([A-Za-z0-9_])
+	- [:xdigit:] - Hexadecimal digits ([A-Fa-f0-9])
+
+Repetition Expressions
+- repetition metacharacters can be followed with one character or character set:
+	* - preceding item zero or more times (apples* matches apple, apple, applesss)
+	+ - preceding item one or more times (apples* matches apple, applesss, bot not apple)
+	? - preceding item zero or one time  (apples* matches apple, apple, but not applesss)
+\d\d\d\d* - matches numbers with three digits or more
+\d\d\d+ - matches numbers with three digits or more
+{}- metacharacter for quantified repetition of preceding item
+	{min,max} - min max are positive numbers, min is a must and cannot be zero, max is optional
+	\d{4,8} - matches numbers with four to eight digits
+- greedy expressions: tries to match the longest possible string
+- run /.*[0-9]+/ on "Page 266": .* matches the whole string in greedy mode, but it will have to give the last "6" to the [0-9]+ otherwise it is not a match, it backtracks as long as it can
+- regex is eager to give results back and they are greedy
+? - make preceding quantifier lazy, instead of greedy
+- greedy strategy: match as much as possible before giving control to the next expression part
+- lazy strategy: match as little as possible before giving control to the next expression part
+- greedy and lazy might returns different results, but necessary faster
+- run /.*?[0-9]+/ on "Page 266" -  .* matches nothing in lazy mode, it will have to give the "P" to the [0-9]+, when it is not a match, it give the "P" to the .* and checks if it accepts it
+- run /.*?[0-9]+?/ on "Page 266" - it matches nothing
+- the two strategy gices different results on "Milton', "Waddams", "Initech, Inc."
+	- /".+", ".+" - matches the whole string
+	- /".+?", ".+?" - matches the first 2 item
+- efficient matching and less backtracking means faster result
+	- define the quantity of repeated expressions
+	- narrow the scope
+	- provide clearer starting and anding points
+	- search for whole words (start with space)
+
+Grouping and alternation expressions
+() - start and end sign of grouped expression, metacharacter
+	- apply repetition operator to a grouped ((abc)+ matches abc and abcabcabc)
+	- makes expressions easier to read
+	- captures group for use in matching and replacing
+	- cannot be used inside a character set
+| - alternation metacharacter (OR)
+	- matches expression on the left or on the right
+	- leftmost item gets priority
+	- scans the first charater of the string for all the options, after it goes to the second character
+	- apple|orange matches apple and orange
+	- w(ei|ie)rd - matches weird and wierd
+
+Anchored expressions
+- refer to a position, not an actual character
+^ - start of string/line, metacharacter (^apple matches apple in the beginning of the string)
+$ - end of string/line, metacharacter (apple$ matches apple in the end of the string)
+\A - start of string, never end of line, metacharacter (apple\Z matches apple in the end of the string)
+\Z - end of string, never end of line, metacharacter (\Aapple matches apple in the beginning of the string)
+- ^ and $ are supported in all regex engines
+- \A and \Z are supported in Java, .NET, Perl, PHP, Python, Ruby
+- single line mode: ^ and $ do not match at line breaks
+- single line mode: \A and \Z do not match at line breaks
+- multiline mode: ^ and $ match at the start and end of lines
+- multiline mode: \A and \Z do not match at line breaks
+- regex has to set be set to multiline mode
+- word boundaries meta characters
+	\b - word boundary (start/end of a word)
+	\B - not a word boundary
+	- references a position, not a space
+	- \b\w+\b finds four matches in "this is a test", just the characters are matched
+	- \B\w+\B finds two matches in "this is a test", "hi" and "es"
+
+Backreferences
+- grouped expressions are captured and stores the matched portion in paranthesis
+	- a(p{2}l)e matches apple and stores ppl
+	- stores the data matched, not the expression
+- backreferences allow access to captured data
+	- refer to first backreference with \1
+\1 through \9 - backreference for position one to nine
+- can be used in the same expression as the group or accessed after the match is complete
+- cannot be used inside character classes
+- some regex engines use $1 through $9
+- (ab)(cd)(ef)\3\2\1 matches "abcdefefcdab"
+- <(i|em)>.*?</\1> - matches <i>Hello<i>, closing tag has to be exactly the same value (not regex) as the opening one
+- can be used in the replace part of Notepad++
+	1. create regex that matches target data
+	2. add capturing groups
+	3. write the replacement string
+?: - specify a non capturing group
+	- (\w+) becomes (?:\w+)
+	- optimize for speed
+	- preserve space for later captured
+	- turns off capture and backreferences
+- ? means give this group a different meaning
+	- : means the meaning is non capturing
+
+Lookaround assertions
+?= - positive lookaround assertions
+	- can be used on groups
+	- (?=seashore)sea matches "sea" in seashore but not seaside
+	- if lookahead expression fails, the match failes
+	- any valid regex can be used
+	- assertion of what ought to be ahead
+	- zero width, does not include group in the match
+- can double test string with this approach
+	- (?=^[0-5\-]+$)\d{3}-d{3}-d{4} - check of there no numbers bigger than five in the string and then check structure
+?! - negative lookaround assertions
+	- (?!seashore)sea matches "sea" in seaside but not in seashore
+?<= - positive lookbehind assertion
+	- if lookbehind expression fails, the match failes
+	- any valid regex can be used
+	- assertion of what ought to be behind
+	- zero width, does not include group in the match
+	- (?<=base)ball matches the ball in baseball but not in football
+?<! - negative lookbehind assertion
+	- if lookbehind expression fails, the match failes
+	- any valid regex can be used
+	- assertion of what ought to be behind
+	- zero width, does not include group in the match
+	- (?<!base)ball matches the ball in football but not in baseball
+- lookbehind assertions:
+	- simple expressions means fixed lenght
+	- literal text
+	- character classes
+	- no repetition or optional expressions
+	- alternation only with fixed-length items (same number of characters)
+
+Unicode and multibyte characters
+\u - unicode indicator (caf\u00E9 matches café, but not cafe)
+\X - unicode wildcard
+	- matches any single character (line breaks too)
+-p{property - unicode property: matches characters that have a property
+	\p{Mark} -  matches any "mark" (accents)
+	\p{Letter} - matches any letter
+	\p{Separator} - matches any 
+	\p{Symbol} - matches any separator
+	\p{Number} - matches any number
+	\p{Punctuation} - matches any punctuation
+	\p{Other} - matches any other character
+\P{property}- unicode property: matches characters that have no property
